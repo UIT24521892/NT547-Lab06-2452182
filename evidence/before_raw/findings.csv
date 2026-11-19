@@ -1,0 +1,13 @@
+﻿index,check,impact,confidence,file,lines,description
+1,weak-prng,High,Medium,AuditTarget.sol,"36,37,38; 37","TipJar_2182.uiDay() (AuditTarget.sol#36-38) uses a weak PRNG: ""(block.timestamp / 86400 + 4) % 7 (AuditTarget.sol#37)"""
+2,controlled-delegatecall,High,Medium,AuditTarget.sol,"56,57,58,59; 57","TipJar_2182.execute(address,bytes) (AuditTarget.sol#56-59) uses delegatecall to a input-controlled function id 	- (ok,None) = target.delegatecall(data) (AuditTarget.sol#57)"
+3,suicidal,High,High,AuditTarget.sol,"52,53,54",TipJar_2182.sunset() (AuditTarget.sol#52-54) allows anyone to destruct the contract
+4,tx-origin,Medium,Medium,AuditTarget.sol,"61,62,63,64,65; 62","TipJar_2182.updateOwner(address) (AuditTarget.sol#61-65) uses tx.origin for authorization: require(bool,string)(tx.origin == owner,not owner) (AuditTarget.sol#62)"
+5,unchecked-lowlevel,Medium,Medium,AuditTarget.sol,"40,41,42,43; 42",TipJar_2182.collectFees(address) (AuditTarget.sol#40-43) ignores return value by to.call{value: address(this).balance}() (AuditTarget.sol#42)
+6,missing-zero-check,Low,Medium,AuditTarget.sol,56; 57,"TipJar_2182.execute(address,bytes).target (AuditTarget.sol#56) lacks a zero-check on : 		- (ok,None) = target.delegatecall(data) (AuditTarget.sol#57)"
+7,timestamp,Low,Medium,AuditTarget.sol,"45,46,47,48,49,50; 46","TipJar_2182.vestStep() (AuditTarget.sol#45-50) uses timestamp for comparisons 	Dangerous comparisons: 	- require(bool,string)(block.timestamp >= cooldownEnd,locked) (AuditTarget.sol#46)"
+8,low-level-calls,Informational,High,AuditTarget.sol,"56,57,58,59; 57","Low level call in TipJar_2182.execute(address,bytes) (AuditTarget.sol#56-59): 	- (ok,None) = target.delegatecall(data) (AuditTarget.sol#57)"
+9,low-level-calls,Informational,High,AuditTarget.sol,"31,32,33,34; 32","Low level call in TipJar_2182.ownerWithdraw(uint256) (AuditTarget.sol#31-34): 	- (ok,None) = address(owner).call{value: amount}() (AuditTarget.sol#32)"
+10,low-level-calls,Informational,High,AuditTarget.sol,"40,41,42,43; 42",Low level call in TipJar_2182.collectFees(address) (AuditTarget.sol#40-43): 	- to.call{value: address(this).balance}() (AuditTarget.sol#42)
+11,low-level-calls,Informational,High,AuditTarget.sol,"45,46,47,48,49,50; 48","Low level call in TipJar_2182.vestStep() (AuditTarget.sol#45-50): 	- (ok,None) = address(owner).call{value: address(this).balance / 10}() (AuditTarget.sol#48)"
+12,naming-convention,Informational,High,AuditTarget.sol,"10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66",Contract TipJar_2182 (AuditTarget.sol#10-66) is not in CapWords

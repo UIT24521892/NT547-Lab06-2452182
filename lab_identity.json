@@ -1,0 +1,9 @@
+{
+  "mssv": "2452182",
+  "session_code": "SC-C56214",
+  "contract": "TipJar_2182",
+  "baseline_sha256": "c4d569aced34f3665115e4b6508f6fa5d654ca9be9e9a7a960a12368c89344be",
+  "generated_utc": "2026-11-19T12:20:11.615843+00:00",
+  "solidity": "0.8.24",
+  "note": "session_code sinh tai may SV, KHONG do GV cap"
+}

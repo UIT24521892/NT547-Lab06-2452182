@@ -1,0 +1,6 @@
+﻿index,check,impact,confidence,file,lines,description
+1,weak-prng,High,Medium,AuditTarget.sol,"36,37,38; 37","TipJar_2182.uiDay() (AuditTarget.sol#36-38) uses a weak PRNG: ""(block.timestamp / 86400 + 4) % 7 (AuditTarget.sol#37)"""
+2,controlled-delegatecall,High,Medium,AuditTarget.sol,"56,57,58,59; 57","TipJar_2182.execute(address,bytes) (AuditTarget.sol#56-59) uses delegatecall to a input-controlled function id 	- (ok,None) = target.delegatecall(data) (AuditTarget.sol#57)"
+3,suicidal,High,High,AuditTarget.sol,"52,53,54",TipJar_2182.sunset() (AuditTarget.sol#52-54) allows anyone to destruct the contract
+4,tx-origin,Medium,Medium,AuditTarget.sol,"61,62,63,64,65; 62","TipJar_2182.updateOwner(address) (AuditTarget.sol#61-65) uses tx.origin for authorization: require(bool,string)(tx.origin == owner,not owner) (AuditTarget.sol#62)"
+5,unchecked-lowlevel,Medium,Medium,AuditTarget.sol,"40,41,42,43; 42",TipJar_2182.collectFees(address) (AuditTarget.sol#40-43) ignores return value by to.call{value: address(this).balance}() (AuditTarget.sol#42)

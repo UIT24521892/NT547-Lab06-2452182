@@ -1,0 +1,73 @@
+COMMAND: slither AuditTarget.sol --config-file config/slither.raw.json --fail-none --json evidence/before_raw/slither.json
+SLITHER_VERSION:
+0.11.6
+
+SOLC_VERSION:
+solc, the solidity compiler commandline interface
+Version: 0.8.24+commit.e11b9ed9.Darwin.appleclang
+
+
+Detector: weak-prng
+TipJar_2182.uiDay() (AuditTarget.sol#36-38) uses a weak PRNG: "(block.timestamp / 86400 + 4) % 7 (AuditTarget.sol#37)" 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#weak-PRNG
+
+Detector: controlled-delegatecall
+TipJar_2182.execute(address,bytes) (AuditTarget.sol#56-59) uses delegatecall to a input-controlled function id
+	- (ok,None) = target.delegatecall(data) (AuditTarget.sol#57)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#controlled-delegatecall
+
+Detector: suicidal
+TipJar_2182.sunset() (AuditTarget.sol#52-54) allows anyone to destruct the contract
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#suicidal
+
+Detector: tx-origin
+TipJar_2182.updateOwner(address) (AuditTarget.sol#61-65) uses tx.origin for authorization: require(bool,string)(tx.origin == owner,not owner) (AuditTarget.sol#62)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dangerous-usage-of-txorigin
+
+Detector: unchecked-lowlevel
+TipJar_2182.collectFees(address) (AuditTarget.sol#40-43) ignores return value by to.call{value: address(this).balance}() (AuditTarget.sol#42)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unchecked-low-level-calls
+
+Detector: missing-zero-check
+TipJar_2182.execute(address,bytes).target (AuditTarget.sol#56) lacks a zero-check on :
+		- (ok,None) = target.delegatecall(data) (AuditTarget.sol#57)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
+
+Detector: timestamp
+TipJar_2182.vestStep() (AuditTarget.sol#45-50) uses timestamp for comparisons
+	Dangerous comparisons:
+	- require(bool,string)(block.timestamp >= cooldownEnd,locked) (AuditTarget.sol#46)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+
+Detector: low-level-calls
+Low level call in TipJar_2182.ownerWithdraw(uint256) (AuditTarget.sol#31-34):
+	- (ok,None) = address(owner).call{value: amount}() (AuditTarget.sol#32)
+Low level call in TipJar_2182.collectFees(address) (AuditTarget.sol#40-43):
+	- to.call{value: address(this).balance}() (AuditTarget.sol#42)
+Low level call in TipJar_2182.vestStep() (AuditTarget.sol#45-50):
+	- (ok,None) = address(owner).call{value: address(this).balance / 10}() (AuditTarget.sol#48)
+Low level call in TipJar_2182.execute(address,bytes) (AuditTarget.sol#56-59):
+	- (ok,None) = target.delegatecall(data) (AuditTarget.sol#57)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
+
+Detector: naming-convention
+Contract TipJar_2182 (AuditTarget.sol#10-66) is not in CapWords
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
+AuditTarget.sol analyzed (2 contracts with 102 detectors), 12 result(s) found
+Multiple frameworks detected: solc, Solc-json. Using solc (highest priority). Use --compile-force-framework to override.
+'solc --version' running
+'solc AuditTarget.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes --allow-paths .,/Users/macos/Downloads/Lab06_SinhVien' running
+Compilation warnings/errors on AuditTarget.sol:
+Warning: Return value of low-level calls not used.
+  --> AuditTarget.sol:42:9:
+   |
+42 |         to.call{value: address(this).balance}("");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Warning: "selfdestruct" has been deprecated. Note that, starting from the Cancun hard fork, the underlying opcode no longer deletes the code and data associated with an account and only transfers its Ether to the beneficiary, unless executed in the same transaction in which the contract was created (see EIP-6780). Any use in newly deployed contracts is strongly discouraged even if the new behavior is taken into account. Future changes to the EVM might further reduce the functionality of the opcode.
+  --> AuditTarget.sol:53:9:
+   |
+53 |         selfdestruct(payable(msg.sender));
+   |         ^^^^^^^^^^^^
+
+
