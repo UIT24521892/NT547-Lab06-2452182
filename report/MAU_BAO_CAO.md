@@ -3,7 +3,7 @@
 **MSSV:** 2452182  | **Họ tên:** Hồ Lê Anh Trường | **Lớp:** ...
 **Session code tự sinh:** SC-C56214 | **Tên contract:** TipJar_2182
 **Solidity / Slither:** 0.8.24 / 0.11.6 | **Ngày hoàn thành:** ...
-**URL GitHub repository:** ...
+**URL GitHub repository:** https://github.com/UIT24521892/NT547-Lab06-2452182
 
 ## 1. Static scan (2,0 điểm)
 
@@ -31,17 +31,18 @@ ghi “Manual review / Not reported”, KHÔNG sửa slither.json hoặc tạo f
 
 | Detector + vị trí | TP / FP / Chưa kết luận | Bằng chứng kiểm soát/khả năng khai thác | Biện pháp (Fix / Accept có lý do) | Sau sửa |
 |---|---|---|---|---|
-| | | | | |
-| | | | | |
-| | | | | |
-| | | | | |
-| | | | | |
-| | | | | |
+| `weak-prng` (High), `uiDay()`, dòng 37 trước sửa | FP trong ngữ cảnh | Hàm `view` chỉ trả chỉ số ngày trong tuần. Trong mã hiện tại không có đường dùng kết quả cho phân quyền hoặc chi trả. | Viết phép cộng modulo bằng `addmod(block.timestamp / 1 days, 4, 7)`. Kết quả tương đương biểu thức cũ. | Hết finding ở cả hai scan AFTER. |
+| `controlled-delegatecall` (High), `execute()`, dòng 57 trước sửa | TP | Hàm công khai nhận `target` và `data` từ caller. `delegatecall` chạy mã đích trong ngữ cảnh storage của TipJar. | Thêm `onlyOwner`, xác nhận đích là contract và dùng `call` để mã đích chạy trong ngữ cảnh của chính nó. | Hết `controlled-delegatecall` và `missing-zero-check`. Raw còn thông tin `low-level-calls`. |
+| `suicidal` (High), `sunset()`, dòng 53 trước sửa | TP | Caller bất kỳ có thể kích hoạt chuyển toàn bộ ETH từ contract vì hàm chưa kiểm tra quyền. | Thêm `onlyOwner` vào `sunset()`. | Hết detector `suicidal`. Cảnh báo của compiler về `selfdestruct` vẫn xuất hiện. |
+| `tx-origin` (Medium), `updateOwner()`, dòng 62 trước sửa | TP | Điều kiện cũ kiểm tra tài khoản khởi tạo giao dịch, cho phép một lời gọi gián tiếp vượt qua kiểm tra danh tính caller. | Kiểm tra `msg.sender == owner` và giữ điều kiện địa chỉ mới khác zero. | Hết `tx-origin`. Raw báo Low `events-access` do chưa phát sự kiện khi đổi owner. |
+| `unchecked-lowlevel` (Medium), `collectFees()`, dòng 42 trước sửa | TP | Nếu bên nhận từ chối ETH, low-level call trả `false` nhưng giao dịch bên ngoài vẫn có thể được ghi nhận thành công. | Kiểm tra giá trị trả về và revert khi gửi thất bại. | Hết `unchecked-lowlevel`. Raw còn thông tin `low-level-calls`. |
+| `timestamp` (Low), `vestStep()`, dòng 46 trước sửa | Chấp nhận theo ngữ cảnh | Timestamp chỉ kiểm tra mốc mở khóa. Hàm yêu cầu `onlyOwner`, ghi `cooldownEnd` mới trước khi gửi tiền và kiểm tra kết quả gửi. | Giữ cơ chế cooldown. Thời điểm có thể lệch sát ngưỡng, nhưng timestamp không quyết định người nhận hoặc quyền gọi. | Vẫn có trong raw. Bộ lọc Low loại khỏi configured. |
 
-- Mô tả ít nhất 01 kịch bản khai thác TP: người gọi -> điều kiện -> call/state -> hậu quả: ...
-- Phân tích 01 finding có severity cao nhưng risk thực tế không tương ứng: ...
-- Dẫn bằng chứng `git diff`, scan before/after và giải thích cảnh báo còn lại: ...
-- Lý do của mọi `slither-disable-next-line`: ... (tên detector, đúng vị trí, kiểm soát bù trừ).
+- Kịch bản TP cho `unchecked-lowlevel`: owner gọi `collectFees` để chuyển ETH đến một contract từ chối nhận tiền. Lời gọi nội bộ trả về `false`. Trong baseline, giao dịch bên ngoài vẫn có thể báo thành công dù ETH chưa chuyển. Bản sửa revert khi lời gọi thất bại.
+- Severity và rủi ro: `weak-prng` được xếp High vì giá trị ngẫu nhiên lấy từ timestamp có thể gây hậu quả lớn nếu dùng để chia thưởng. `uiDay()` chỉ tính ngày trong tuần để hiển thị, nên trong source hiện tại kết quả không ảnh hưởng số dư hay quyền gọi.
+- Diff và bằng chứng: `evidence/fix.diff` đối chiếu bản vá với commit baseline. Raw giảm từ 12 xuống 7 findings (0 High, 0 Medium, 2 Low, 5 Informational). Configured giảm từ 5 xuống 0. Xem `evidence/after_raw/` và `evidence/after_configured/`.
+- Hai finding Low là `events-access` (có thể bổ sung event để theo dõi thay đổi owner) và `timestamp` (đã triage ở trên). Năm finding Informational gồm bốn `low-level-calls`, đều kiểm tra kết quả trả về, và một `naming-convention` do tên contract có hậu tố MSSV từ generator.
+- Không dùng chỉ thị `slither-disable-next-line`. Biểu thức mới trong `uiDay()` trả cùng chỉ số ngày và không còn bị detector `weak-prng` báo.
 
 ## 3. Kiến trúc / Inheritance (1,5 điểm)
 
@@ -54,11 +55,11 @@ ghi “Manual review / Not reported”, KHÔNG sửa slither.json hoặc tạo f
 
 | Phase | Commit (full/short SHA) | Run URL | Kết quả | Detector khiến RED / lý do GREEN |
 |---|---|---|---|---|
-| Baseline vulnerable | | | RED | |
+| Baseline vulnerable | ab0c3097319dd4ff67d303455e1db25efb6f6a50 | https://github.com/UIT24521892/NT547-Lab06-2452182/actions/runs/44524423141 | RED | Step Slither thất bại với 5 findings: weak-prng, controlled-delegatecall, suicidal (High); tx-origin, unchecked-lowlevel (Medium). Đã đối chiếu ảnh log Actions của baseline. |
 | Patched | | | GREEN | |
 
-- So sánh local `--fail-none` (thu thập findings) với CI `fail-on: medium`: ...
-- `exclude_low/informational` thay đổi kết quả hiển thị ra sao: ...
+- So sánh local `--fail-none` (thu thập findings) với CI `fail-on: medium`: local vẫn trả exit code 0 khi có findings để ghi JSON/CSV/log phục vụ triage; CI thất bại khi còn finding từ Medium trở lên. Baseline local exit 0 nhưng Actions RED vì còn 3 High và 2 Medium.
+- `exclude_low/informational` thay đổi kết quả hiển thị ra sao: baseline raw có 12 findings; configured chỉ còn 5 do loại 2 Low và 5 Informational, không làm mất High/Medium và không sửa nguyên nhân trong source.
 
 ## 5. Mutation RED -> GREEN (1,5 điểm)
 
@@ -74,9 +75,9 @@ ghi “Manual review / Not reported”, KHÔNG sửa slither.json hoặc tạo f
 
 ## 6. Bằng chứng, tự kiểm
 
-- [ ] `AuditTarget.sol`, `lab_identity.json`
-- [ ] `evidence/before_raw/` và `evidence/before_configured/`
-- [ ] `evidence/after_raw/` và `evidence/after_configured/`
+- [x] `AuditTarget.sol`, `lab_identity.json`
+- [x] `evidence/before_raw/` và `evidence/before_configured/`
+- [x] `evidence/after_raw/` và `evidence/after_configured/`
 - [ ] `evidence/architecture/`
 - [ ] 04 URL Actions run RED/GREEN/RED/GREEN + 04 commit SHA
 - [ ] Link repo và ảnh màn hình có terminal / URL / commit SHA; không cắt mất ngữ cảnh

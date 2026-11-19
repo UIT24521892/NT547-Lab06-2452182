@@ -34,12 +34,13 @@ contract TipJar_2182 {
     }
 
     function uiDay() external view returns (uint256) {
-        return (block.timestamp / 1 days + 4) % 7;
+        return addmod(block.timestamp / 1 days, 4, 7);
     }
 
     function collectFees(address payable to) external onlyOwner {
         require(to != address(0), "zero");
-        to.call{value: address(this).balance}("");
+        (bool ok, ) = to.call{value: address(this).balance}("");
+        require(ok, "send failed");
     }
 
     function vestStep() external onlyOwner {
@@ -49,17 +50,19 @@ contract TipJar_2182 {
         require(ok, "release failed");
     }
 
-    function sunset() external {
+    function sunset() external onlyOwner {
         selfdestruct(payable(msg.sender));
     }
 
-    function execute(address target, bytes calldata data) external {
-        (bool ok, ) = target.delegatecall(data);
-        require(ok, "delegatecall failed");
+    function execute(address target, bytes calldata data) external onlyOwner {
+        require(target != address(0), "zero");
+        require(target.code.length > 0, "not contract");
+        (bool ok, ) = target.call(data);
+        require(ok, "call failed");
     }
 
     function updateOwner(address newOwner) external {
-        require(tx.origin == owner, "not owner");
+        require(msg.sender == owner, "not owner");
         require(newOwner != address(0), "zero");
         owner = newOwner;
     }
